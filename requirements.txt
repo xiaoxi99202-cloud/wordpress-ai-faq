@@ -7,3 +7,4 @@ langchain-openai
 pandas
 python-dotenv
 chromadb
+dashscope==1.16.0
