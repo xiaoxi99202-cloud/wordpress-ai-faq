@@ -55,7 +55,7 @@ def get_rag_chain():
         model = ChatOpenAI(
             model="qwen-max",
             openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
-            openai_api_key=os.getenv("DASHSCOPE_API_KEY"),
+            openai_api_key=os.getenv("sk-bb9dfa77a3834541bfe15ae228966388"),
             temperature=0.3
         )
         _rag_chain = (
