@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import DashScopeEmbeddings
@@ -11,6 +12,18 @@ from langchain_community.chat_models import ChatOpenAI
 
 # 初始化 FastAPI
 app = FastAPI(title="外贸AI产品问答")
+
+# ✅ 添加 CORS 中间件：仅允许你的域名访问
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://tradegoai.app",
+        "https://www.tradegoai.app"
+    ],
+    allow_credentials=True,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 
 # 全局变量：RAG 链（生产环境建议用缓存或懒加载）
 _rag_chain = None
