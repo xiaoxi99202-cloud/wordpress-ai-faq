@@ -65,12 +65,17 @@ def get_rag_chain():
             "- 用简洁专业的中英文双语回答\n"
             "- 突出参数、价格、MOQ等关键信息"
         )
-        model = ChatOpenAI(
-            model="qwen-max",
-            openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
-            openai_api_key=os.getenv("DASHSCOPE_API_KEY"),
-            temperature=0.3
-        )
+        from langchain_core.language_models import ChatModel
+
+        # 使用 ChatModel 替代 ChatOpenAI
+        model = ChatModel.from_llm(
+        llm=ChatOpenAI(
+        model="qwen-max",
+        openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        openai_api_key=os.getenv("DASHSCOPE_API_KEY"),
+        temperature=0.3
+    )
+)
         _rag_chain = (
             {"context": retriever, "question": RunnablePassthrough()}
             | prompt
