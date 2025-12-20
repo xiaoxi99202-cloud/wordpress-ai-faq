@@ -3,17 +3,19 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+# ✅ 正确导入 ChatOpenAI（来自 langchain-openai）
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI  # ← 关键：从 langchain-openai 导入
 
 # 初始化 FastAPI
 app = FastAPI(title="外贸AI产品问答")
 
-# ✅ 添加 CORS 中间件：仅允许你的域名访问
+# ✅ CORS 配置：仅允许你的域名
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -25,7 +27,7 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-# 全局变量：RAG 链（生产环境建议用缓存或懒加载）
+# 全局变量：RAG 链
 _rag_chain = None
 
 def get_rag_chain():
@@ -34,7 +36,7 @@ def get_rag_chain():
         return _rag_chain
     
     try:
-        # 1. 加载产品数据（从 products.csv）
+        # 1. 加载产品数据
         df = pd.read_csv("products.csv")
         documents = []
         for _, row in df.iterrows():
@@ -47,7 +49,7 @@ def get_rag_chain():
             )
             documents.append(text)
         
-        # 2. 初始化向量化
+        # 2. 向量化
         embeddings = DashScopeEmbeddings(
             model="text-embedding-v2",
             dashscope_api_key=os.getenv("DASHSCOPE_API_KEY")
@@ -65,17 +67,15 @@ def get_rag_chain():
             "- 用简洁专业的中英文双语回答\n"
             "- 突出参数、价格、MOQ等关键信息"
         )
-        from langchain_core.language_models import ChatModel
-
-        # 使用 ChatModel 替代 ChatOpenAI
-        model = ChatModel.from_llm(
-        llm=ChatOpenAI(
-        model="qwen-max",
-        openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
-        openai_api_key=os.getenv("DASHSCOPE_API_KEY"),
-        temperature=0.3
-    )
-)
+        
+        # ✅ 使用 langchain-openai 的 ChatOpenAI（无警告）
+        model = ChatOpenAI(
+            model="qwen-max",
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",  # 新版参数名
+            api_key=os.getenv("DASHSCOPE_API_KEY"),
+            temperature=0.3
+        )
+        
         _rag_chain = (
             {"context": retriever, "question": RunnablePassthrough()}
             | prompt
